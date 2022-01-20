@@ -18,6 +18,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -32,13 +41,70 @@ const client = new discord_js_1.default.Client({
     ]
 });
 client.on('ready', () => {
+    var _a;
     console.log('bot is ready');
+    const guildID = '933650508353253396';
+    const guild = client.guilds.cache.get(guildID);
+    let commands;
+    if (guild) {
+        commands = guild.commands;
+    }
+    else {
+        commands = (_a = client.application) === null || _a === void 0 ? void 0 : _a.commands;
+    }
+    commands === null || commands === void 0 ? void 0 : commands.create({
+        name: 'ping',
+        description: 'Replies with pong.'
+    });
+    commands === null || commands === void 0 ? void 0 : commands.create({
+        name: 'add',
+        description: 'adds 2 numbers.',
+        options: [
+            {
+                name: 'num1',
+                description: 'the first number.',
+                required: true,
+                type: discord_js_1.default.Constants.ApplicationCommandOptionTypes.NUMBER
+            },
+            {
+                name: 'num2',
+                description: 'the second number.',
+                required: true,
+                type: discord_js_1.default.Constants.ApplicationCommandOptionTypes.NUMBER
+            }
+        ]
+    });
 });
-client.on('messageCreate', (message) => {
-    if (message.content === 'ping') {
-        message.reply({
+// client.on('messageCreate', (message) => {
+//     if (message.content === 'ping'){
+//         message.reply({
+//             content: 'pong',
+//         })
+//     }
+// })
+client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!interaction.isCommand()) {
+        return;
+    }
+    const { commandName, options } = interaction;
+    if (commandName === 'ping') {
+        interaction.reply({
             content: 'pong',
+            ephemeral: true
         });
     }
-});
+    else if (commandName === 'add') {
+        const num1 = options.getNumber('num1');
+        const num2 = options.getNumber('num2');
+        yield interaction.deferReply({
+            ephemeral: true
+        });
+        yield new Promise(resolve => setTimeout(resolve, 5000));
+        let num = num1 + num2;
+        yield interaction.editReply({
+            content: 'The sum is ' + num
+        });
+    }
+    //`The sum is ${num1 + num2}`
+}));
 client.login(process.env.TOKEN);
